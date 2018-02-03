@@ -15,11 +15,9 @@ state_name = "AL"
 garbage_words = [" of ", " in ", " the "]
 address_strings = []
 
+# Extract rows from file and try to split/select on address header keywords
 with open(fn) as f:
-    total_sep = 0
-    row_count = 0
     for i, row in enumerate(f):
-        row_count += 1
         location = row.split("on the ")
         if len(location) == 1:
             location = row.split("at the ")
@@ -29,6 +27,7 @@ with open(fn) as f:
             location = row.split(" on ")
         if len(location) == 1:
             print("Irregular formatting, must manually format entry number : ", i)
+            location = "None"
         else:
             location = location[1]
             if "." in location:
@@ -38,26 +37,41 @@ with open(fn) as f:
         address_strings.append(location)
 
 
-with open("bham_murder_addresses.csv", "a") as fn:
-    """ take the address strings, and format them in a way that will be 
-        understandable by geopy.  best case is 
-        address number streetname city state"""
-    usaddress_keys = ["AddressNumber", "StreetName",
-                    'StreetNamePostType', 'StreetNamePostDirectional']
-    address_details = []
-    refined_addresses = []
-    for i, address in enumerate(address_strings):
-        details = usa.tag(address)[0]
+# Build
+address_details = []
+for i,a in enumerate(address_strings):
+    # builds orderedDict
+    address_details.append("")
+    try:
+        address_details[i] = usa.tag(a)
+    except:
+        print("Unable to create detailed address")
+        address_details[i] = "None"
 
-        # create an entry so there aren't errors if address is unparsable, or
-        # some other error
-        refined_addresses.append("")
-        # Build ideal addresses
-        for key in usaddress_keys:
-            if key in details:
-                refined_addresses[i] += details[key]
+actual_address = []
+usa_keys = ['AddressNumber', 'StreetName', 'StreetNamePostType', 'StreetNamePostDirectional']
+for i,a in enumerate(address_details):
+    try:
+        actual_address.append("")
+        if address_details[i][1] == 'Street Address':
+            for key in usa_keys:
+                if key in address_details[i][0]:
+                    actual_address[i] += address_details[i][0][key] + ' '
+            actual_address[i] += ',Birmingham, AL'
+        else:
+            actual_address[i] += 'NA'
+    except:
+        print("Error building address")
+        actual_address[i] += "None"
 
-            refined_addresses[i] += f', {city_name}, {state_name}'
 
-    for ra in refined_addresses:
-        print(refined_addresses)
+locations = []
+for i,a in enumerate(actual_address):
+    if a is not "NA":
+        gl = geolocater.geocode(a)
+        locations.append(gl)
+    else:
+        locations.append(f"{i} - NA")
+
+for l in locations:
+    print(l)
