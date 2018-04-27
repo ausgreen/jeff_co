@@ -10,19 +10,19 @@ import keys
 import googlemaps
 import pandas as pd
 
-gmaps = googlemaps.Client(key=keys.GOOGLE_API_KEY)
-filename = 'al_gun_01.csv'
+gmaps = googlemaps.Client(key=keys.GOOGLE_API_KEY_2)
+filename = 'al_gun_04.csv'
 
 data = pd.read_csv(filename)
 print(data.head())
 bad_address_count = 0
 
 
-test_result = gmaps.geocode(data['address'][0] +
-                                   ', ' +
-                                   str(data['city_or_county'][0]) +
-                                   ', AL')
-print(test_result[0]['geometry']['location']['lat'])
+# test_result = gmaps.geocode(data['address'][0] +
+#                                    ', ' +
+#                                    str(data['city_or_county'][0]) +
+#                                    ', AL')
+# print(test_result[0]['geometry']['location']['lat'])
 
 
 for i, addr in enumerate(data['address']):

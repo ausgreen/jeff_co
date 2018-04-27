@@ -1,24 +1,38 @@
+
+# coding: utf-8
+
+# In[15]:
+
+
+import folium
 import pandas as pd
-import os
-import glob
-import dateutil.parser as dparser
-file_location = '../gun-violence-data/intermediate/*'
-files = glob.glob(file_location)
+import numpy as np
 
-df = pd.read_csv(files[0])
-alabama = df[df['state'] == 'Alabama']
 
-for i, file in enumerate(files[:]):
-    df = pd.read_csv(file)
-    alabama = pd.concat([alabama, df[df['state'] == 'Alabama']])
+# In[2]:
 
-# goal here is to build a CSV file of ALL Alabama incidents
-print(alabama.head(3))
 
-dates = list(alabama['date'])
+gun_map = folium.Map(location=[32.3182, -86.9023], zoom_start=7)
 
-for i, d in enumerate(dates):
-    dates[i] = dparser.parse(d).date()
 
-alabama['date'] = dates
-alabama.to_csv('./alabama_gun_violence.csv')
+# In[3]:
+
+
+gun_data = pd.read_csv('al_gun_01.csv')
+
+
+# In[4]:
+
+
+gun_data.head()
+
+
+# In[25]:
+
+
+# build up datapoints
+for i, row in gun_data.iterrows():
+    if(not np.isnan(row['latitude'])):
+        folium.Marker(location=[row['latitude'], row['longitude']],
+                      popup="<a href=%s> INCIDENT INFO </a> \nNumber Killed:\t%d \n Number Injured:\t%d" %(row['incident_url'], row['n_killed'], row['n_injured'])).add_to(gun_map)
+
